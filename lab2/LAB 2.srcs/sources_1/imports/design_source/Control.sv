@@ -15,12 +15,16 @@ module control (
 // Declare signals curr_state, next_state of type enum
 // with enum values of s_start, s_count0, ..., s_done as the state values
 // Note that the length implies a max of 8 states, so you will need to bump this up for 8-bits
-	enum logic [2:0] {
+	enum logic [3:0] {
 		s_start, 
 		s_count0, 
 		s_count1, 
 		s_count2, 
-		s_count3, 
+		s_count3,
+		s_count4,
+		s_count5,
+		s_count6,
+		s_count7, 
 		s_done
 	} curr_state, next_state; 
 
@@ -69,7 +73,11 @@ module control (
 			s_count0 :    next_state = s_count1;
 			s_count1 :    next_state = s_count2;
 			s_count2 :    next_state = s_count3;
-			s_count3 :    next_state = s_done;
+			s_count3 :    next_state = s_count4;
+			s_count4 :    next_state = s_count5;
+			s_count5 :    next_state = s_count6;
+			s_count6 :    next_state = s_count7;
+			s_count7 :    next_state = s_done;
 
 			s_done :    
 			begin

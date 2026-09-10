@@ -6,12 +6,12 @@ module register_unit (
 	input  logic        Ld_A,
 	input  logic        Ld_B, 
 	input  logic        Shift_En,
-	input  logic [3:0]  D, 
+	input  logic [7:0]  D, 
 
 	output logic        A_out, 
 	output logic        B_out, 
-	output logic [3:0]  A,
-	output logic [3:0]  B
+	output logic [7:0]  A,
+	output logic [7:0]  B
 );
 
 

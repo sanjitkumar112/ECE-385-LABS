@@ -1,0 +1,17 @@
+# compile verilog/system verilog design source files
+sv xil_defaultlib  --include "../../../../../../../vivado_install/2026.1/data/rsb/busdef" \
+"../../../../LAB 2.srcs/sources_1/imports/design_source/Control.sv" \
+"../../../../LAB 2.srcs/sources_1/imports/design_source/HexDriver.sv" \
+"../../../../LAB 2.srcs/sources_1/imports/design_source/Processor.sv" \
+"../../../../LAB 2.srcs/sources_1/imports/design_source/Reg_4.sv" \
+"../../../../LAB 2.srcs/sources_1/imports/design_source/Register_unit.sv" \
+"../../../../LAB 2.srcs/sources_1/imports/design_source/Router.sv" \
+"../../../../LAB 2.srcs/sources_1/imports/design_source/Synchronizers.sv" \
+"../../../../LAB 2.srcs/sources_1/imports/design_source/compute.sv" \
+"../../../../LAB 2.srcs/sim_1/imports/sim_sources/testbench_8.sv" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort

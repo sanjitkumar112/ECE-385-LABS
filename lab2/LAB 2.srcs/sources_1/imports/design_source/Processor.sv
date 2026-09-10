@@ -11,13 +11,13 @@ module Processor (
 	input  logic        LoadA,   // Push button 1
 	input  logic        LoadB,   // Push button 2
 	input  logic        Execute, // Push button 3
-	input  logic [3:0]  Din,       
+	input  logic [7:0]  Din,       
 	input  logic [2:0]  F,       // Function select 
 	input  logic [1:0]  R,       // Routing select
 
 	output logic [3:0]  LED,     // DEBUG
-	output logic [3:0]  Aval,    // DEBUG
-	output logic [3:0]  Bval,    // DEBUG
+	output logic [7:0]  Aval,    // DEBUG
+	output logic [7:0]  Bval,    // DEBUG
 	output logic [7:0]  hex_seg, // Hex display control
 	output logic [3:0]  hex_grid // Hex display control
 ); 
@@ -40,9 +40,9 @@ module Processor (
 	logic       F_A_B;
 	logic       opA;
 	logic       opB;
-	logic [3:0] A; 
-	logic [3:0] B; 
-	logic [3:0] Din_S;
+	logic [7:0] A; 
+	logic [7:0] B; 
+	logic [7:0] Din_S;
 	 
 	 
 //We can use the "assign" statement to do simple combinational logic
@@ -106,7 +106,7 @@ module Processor (
 		.clk        (Clk),
 		.reset      (Reset_SH),
 
-		.in         ({4'h0, 4'h0, B[3:0], A[3:0]}),
+		.in         ({A[7:4], A[3:0], B[7:4], B[3:0]}),
 		.hex_seg    (hex_seg),
 		.hex_grid   (hex_grid)
 	);
@@ -122,7 +122,7 @@ module Processor (
 		.q    ({Reset_SH, LoadA_SH, LoadB_SH, Execute_SH})
 	);
 
-	sync_debounce Din_sync [3:0] (
+	sync_debounce Din_sync [7:0] (
 		.Clk  (Clk), 
 
 		.d    (Din), 

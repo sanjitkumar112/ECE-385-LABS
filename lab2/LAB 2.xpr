@@ -3,10 +3,10 @@
 <!--                                                         -->
 <!-- Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="61" Path="/home/user/ece385/lab2/ECE 385 Lab2/ECE 385 Lab2.xpr">
+<Project Version="7" Minor="61" Path="/home/user/ECE-385-LABS/lab2/LAB 2.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
-    <Option Name="Id" Val="a0d1f4cf1de1464abf5da8d580ae5d3b"/>
+    <Option Name="Id" Val="8cc6282f363d4a5f87f7195954e38c56"/>
     <Option Name="Part" Val="xc7s50csga324-1"/>
     <Option Name="CompiledLibDir" Val="$PCACHEDIR/compile_simlib"/>
     <Option Name="CompiledLibDirXSim" Val=""/>
@@ -90,7 +90,7 @@
       <Filter Type="Srcs"/>
       <File Path="$PSRCDIR/sources_1/imports/design_source/Control.sv">
         <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../../lab22_provided_sp24/design_source/Control.sv"/>
+          <Attr Name="ImportPath" Val="$PPRDIR/lab22_provided_sp24/design_source/Control.sv"/>
           <Attr Name="ImportTime" Val="1704005712"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -99,7 +99,7 @@
       </File>
       <File Path="$PSRCDIR/sources_1/imports/design_source/HexDriver.sv">
         <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../../lab22_provided_sp24/design_source/HexDriver.sv"/>
+          <Attr Name="ImportPath" Val="$PPRDIR/lab22_provided_sp24/design_source/HexDriver.sv"/>
           <Attr Name="ImportTime" Val="1697931938"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -108,7 +108,7 @@
       </File>
       <File Path="$PSRCDIR/sources_1/imports/design_source/Reg_4.sv">
         <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../../lab22_provided_sp24/design_source/Reg_4.sv"/>
+          <Attr Name="ImportPath" Val="$PPRDIR/lab22_provided_sp24/design_source/Reg_4.sv"/>
           <Attr Name="ImportTime" Val="1704005774"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -117,7 +117,7 @@
       </File>
       <File Path="$PSRCDIR/sources_1/imports/design_source/Register_unit.sv">
         <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../../lab22_provided_sp24/design_source/Register_unit.sv"/>
+          <Attr Name="ImportPath" Val="$PPRDIR/lab22_provided_sp24/design_source/Register_unit.sv"/>
           <Attr Name="ImportTime" Val="1704005806"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -126,7 +126,7 @@
       </File>
       <File Path="$PSRCDIR/sources_1/imports/design_source/Router.sv">
         <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../../lab22_provided_sp24/design_source/Router.sv"/>
+          <Attr Name="ImportPath" Val="$PPRDIR/lab22_provided_sp24/design_source/Router.sv"/>
           <Attr Name="ImportTime" Val="1704005904"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -135,7 +135,7 @@
       </File>
       <File Path="$PSRCDIR/sources_1/imports/design_source/Synchronizers.sv">
         <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../../lab22_provided_sp24/design_source/Synchronizers.sv"/>
+          <Attr Name="ImportPath" Val="$PPRDIR/lab22_provided_sp24/design_source/Synchronizers.sv"/>
           <Attr Name="ImportTime" Val="1706310422"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -144,7 +144,7 @@
       </File>
       <File Path="$PSRCDIR/sources_1/imports/design_source/compute.sv">
         <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../../lab22_provided_sp24/design_source/compute.sv"/>
+          <Attr Name="ImportPath" Val="$PPRDIR/lab22_provided_sp24/design_source/compute.sv"/>
           <Attr Name="ImportTime" Val="1704006160"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -153,7 +153,7 @@
       </File>
       <File Path="$PSRCDIR/sources_1/imports/design_source/Processor.sv">
         <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../../lab22_provided_sp24/design_source/Processor.sv"/>
+          <Attr Name="ImportPath" Val="$PPRDIR/lab22_provided_sp24/design_source/Processor.sv"/>
           <Attr Name="ImportTime" Val="1706285870"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -175,7 +175,7 @@
     <FileSet Name="sim_1" Type="SimulationSrcs" RelSrcDir="$PSRCDIR/sim_1" RelGenDir="$PGENDIR/sim_1">
       <File Path="$PSRCDIR/sim_1/imports/sim_sources/testbench.sv">
         <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../../lab22_provided_sp24/sim_sources/testbench.sv"/>
+          <Attr Name="ImportPath" Val="$PPRDIR/lab22_provided_sp24/sim_sources/testbench.sv"/>
           <Attr Name="ImportTime" Val="1706638588"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -185,7 +185,7 @@
       <File Path="$PSRCDIR/sim_1/imports/sim_sources/testbench_8.sv">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../../lab22_provided_sp24/sim_sources/testbench_8.sv"/>
+          <Attr Name="ImportPath" Val="$PPRDIR/lab22_provided_sp24/sim_sources/testbench_8.sv"/>
           <Attr Name="ImportTime" Val="1706285804"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>

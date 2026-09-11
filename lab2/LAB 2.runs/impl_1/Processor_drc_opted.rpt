@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
 ---------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2026.1 (lin64) Build 6511674 Tue Jun 16 11:01:26 MDT 2026
-| Date         : Thu Sep 10 13:26:00 2026
+| Date         : Fri Sep 11 13:17:50 2026
 | Host         : amogks-laptop running 64-bit Fedora Linux 42 (Workstation Edition)
 | Command      : report_drc -file Processor_drc_opted.rpt -pb Processor_drc_opted.pb -rpx Processor_drc_opted.rpx
 | Design       : Processor

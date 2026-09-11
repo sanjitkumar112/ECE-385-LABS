@@ -3,8 +3,8 @@
 # SW Build 6511674 on Tue Jun 16 11:01:26 MDT 2026
 # IP Build 6504888 on Tue Jun 09 09:05:25 MDT 2026
 # SharedData Build 6501428 on Mon Jun 08 17:34:18 MDT 2026
-# Start of session at: Thu Sep 10 13:26:34 2026
-# Process ID         : 87409
+# Start of session at: Fri Sep 11 13:16:07 2026
+# Process ID         : 166933
 # Current directory  : /home/amogk/Vivado/ECE-385-LABS/lab2/LAB 2.runs/impl_1
 # Command line       : vivado -log Processor.vdi -applog -product Vivado -messageDb vivado.pb -mode batch -source Processor.tcl -notrace
 # Log file           : /home/amogk/Vivado/ECE-385-LABS/lab2/LAB 2.runs/impl_1/Processor.vdi
@@ -13,12 +13,12 @@
 # Platform           : Fedora
 # Operating System   : Fedora Linux 42 (Workstation Edition)
 # Processor Detail   : AMD Ryzen 9 6900HS with Radeon Graphics
-# CPU Frequency      : 1100.334 MHz
+# CPU Frequency      : 1206.476 MHz
 # CPU Physical cores : 8
 # CPU Logical cores  : 16
 # Host memory        : 15934 MB
 # Swap memory        : 8589 MB
 # Total Virtual      : 24523 MB
-# Available Virtual  : 19267 MB
+# Available Virtual  : 11154 MB
 #-----------------------------------------------------------
 source Processor.tcl -notrace

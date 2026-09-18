@@ -29,7 +29,7 @@ module four_bit_ripple_adder(
 	output cout
 );
 
-    wire [3:0] c;
+    wire [4:0] c;
     assign c[0] = cin; 
     assign cout = c[4];
     
@@ -40,7 +40,7 @@ module four_bit_ripple_adder(
             .b (b[i]),
             .cin (c[i]),
             .s (s[i]),
-            .c_out (c[c[i+1]])
+            .c_out (c[i+1])
         );
     end
 

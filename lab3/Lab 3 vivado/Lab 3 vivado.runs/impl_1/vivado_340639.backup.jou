@@ -1,0 +1,24 @@
+#-----------------------------------------------------------
+# Vivado v2026.1 (64-bit)
+# SW Build 6511674 on Tue Jun 16 11:01:26 MDT 2026
+# IP Build 6504888 on Tue Jun 09 09:05:25 MDT 2026
+# SharedData Build 6501428 on Mon Jun 08 17:34:18 MDT 2026
+# Start of session at: Thu Sep 17 21:45:00 2026
+# Process ID         : 340639
+# Current directory  : /home/amogk/Vivado/ECE-385-LABS/lab3/Lab 3 vivado/Lab 3 vivado.runs/impl_1
+# Command line       : vivado -log adder_toplevel.vdi -applog -product Vivado -messageDb vivado.pb -mode batch -source adder_toplevel.tcl -notrace
+# Log file           : /home/amogk/Vivado/ECE-385-LABS/lab3/Lab 3 vivado/Lab 3 vivado.runs/impl_1/adder_toplevel.vdi
+# Journal file       : /home/amogk/Vivado/ECE-385-LABS/lab3/Lab 3 vivado/Lab 3 vivado.runs/impl_1/vivado.jou
+# Running On         : amogks-laptop
+# Platform           : Fedora
+# Operating System   : Fedora Linux 42 (Workstation Edition)
+# Processor Detail   : AMD Ryzen 9 6900HS with Radeon Graphics
+# CPU Frequency      : 2752.539 MHz
+# CPU Physical cores : 8
+# CPU Logical cores  : 16
+# Host memory        : 15934 MB
+# Swap memory        : 8589 MB
+# Total Virtual      : 24523 MB
+# Available Virtual  : 9150 MB
+#-----------------------------------------------------------
+source adder_toplevel.tcl -notrace

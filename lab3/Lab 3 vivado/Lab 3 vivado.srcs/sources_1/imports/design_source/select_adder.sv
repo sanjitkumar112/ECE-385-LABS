@@ -32,7 +32,7 @@ module select_adder (
 	   four_bit_ripple_adder carry_fbra (
 	       .a (a[i+3:i]),
 	       .b (b[i+3:i]),
-	       .cin (1),
+	       .cin (1'b1),
 	       .s (sum1[i+3:i]),
 	       .cout (cout1[i/4])
 	   );
@@ -40,7 +40,7 @@ module select_adder (
 	   four_bit_ripple_adder no_carry_fbra (
 	       .a (a[i+3:i]),
 	       .b (b[i+3:i]),
-	       .cin (0),
+	       .cin (1'b0),
 	       .s (sum0[i+3:i]),
 	       .cout (cout0[i/4])
 	   );

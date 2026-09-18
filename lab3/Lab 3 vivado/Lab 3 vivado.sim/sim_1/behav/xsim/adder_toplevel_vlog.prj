@@ -1,9 +1,15 @@
 # compile verilog/system verilog design source files
-sv xil_defaultlib  \
+verilog xil_defaultlib  --include "../../../../../../../../vivado_install/2026.1/data/rsb/busdef" \
+"../../../../Lab 3 vivado.srcs/sources_1/new/four_bit_ripple_adder.v" \
+
+sv xil_defaultlib  --include "../../../../../../../../vivado_install/2026.1/data/rsb/busdef" \
 "../../../../Lab 3 vivado.srcs/sources_1/imports/design_source/hex_driver.sv" \
 "../../../../Lab 3 vivado.srcs/sources_1/imports/design_source/load_reg.sv" \
+"../../../../Lab 3 vivado.srcs/sources_1/imports/design_source/lookahead_adder.sv" \
+"../../../../Lab 3 vivado.srcs/sources_1/new/mini_cla.sv" \
 "../../../../Lab 3 vivado.srcs/sources_1/imports/design_source/negedge_detector.sv" \
 "../../../../Lab 3 vivado.srcs/sources_1/imports/design_source/ripple_adder.sv" \
+"../../../../Lab 3 vivado.srcs/sources_1/imports/design_source/select_adder.sv" \
 "../../../../Lab 3 vivado.srcs/sources_1/new/single_ripple.sv" \
 "../../../../Lab 3 vivado.srcs/sources_1/imports/design_source/sync_debounce.sv" \
 "../../../../Lab 3 vivado.srcs/sources_1/imports/design_source/adder_toplevel.sv" \

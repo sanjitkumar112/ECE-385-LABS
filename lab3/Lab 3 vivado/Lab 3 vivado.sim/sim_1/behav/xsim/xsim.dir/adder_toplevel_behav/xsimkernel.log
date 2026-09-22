@@ -2,3 +2,6 @@ Running: xsim.dir/adder_toplevel_behav/xsimk -simmode gui -wdb adder_toplevel_be
 Design successfully loaded
 Design Loading Memory Usage: 429544 KB (Peak: 431360 KB)
 Design Loading CPU Usage: 1850 ms
+Simulation completed
+Simulation Memory Usage: 576816 KB (Peak: 642352 KB)
+Simulation CPU Usage: 2140 ms

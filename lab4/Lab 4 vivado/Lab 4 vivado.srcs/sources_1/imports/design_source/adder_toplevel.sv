@@ -7,102 +7,85 @@
 
 module adder_toplevel   (
 	input  logic 		clk, 
-	input  logic		reset, 
+	input  logic		reset_load_clear, 
 	input  logic 		run_i, // _i stands for input
-	input  logic [15:0] sw_i,
+	input  logic [7:0] sw_i,
 
-	output logic 		sign_led,
-	output logic [7:0]  hex_seg_a,
-	output logic [3:0]  hex_grid_a,
-	output logic [7:0]  hex_seg_b,
-	output logic [3:0]  hex_grid_b
+	output logic 		Xval,
+	output logic [7:0]  Aval, 
+	output logic [7:0]  Bval,
+	output logic [7:0]  hex_seg,
+	output logic [3:0]  hex_grid
 );
 
 	// Declare temporary values used by other modules
-	logic load;
-	//Out;
-	logic [16:0] s;
-	logic [16:0] out;
+	logic       run_pulse, clr_ld, clr_xa, shift, add, sub;
+	logic [8:0] sum;
 	
 	// Synchronized inputs (denoted by _s in naming convention)
-	logic run_s;
-	logic reset_s;
-	logic [15:0] sw_s;
-    
+	logic       rlc_s, run_s;
+	logic [7:0] sw_s;  
+	
 	// Allows the register to load once, and not during full duration of button press
 	// ie. converts an active low button press to a single clock cycle active high event
 	negedge_detector run_once ( 
 		.clk	(clk), 
 		.in	    (run_s), 
-		.out    (load)
+		.out    (run_pulse)
 	);
-
-	// Register unit that holds the accumulated sum
-	load_reg #(
-	   .DATA_WIDTH(17) // specifying the data width of register through a parameter
-	) reg_unit ( 
-		.clk		(clk), 
-		.reset		(reset_s), 
-		.load		(load), 
-		.data_i		(s), 
-		
-		.data_q   	(out)
+	
+	control ctrl (
+		.clk(clk), .reset(rlc_s), .run(run_pulse), .M(Bval[0]),
+		.clr_ld(clr_ld), .clr_xa(clr_xa),
+		.shift(shift), .add(add), .sub(sub)
 	);
 
 	// Addition unit
-//	ripple_adder adder_ra (
-//		.a	 	(sw_s), 
-//		.b	 	(out[15:0]), 
-//		.cin 	(1'b0), 
-//		.cout	(s[16]), 
-//		.s   	(s[15:0]) 
-//	);
-	
-//	lookahead_adder adder_la (		
-//    .a	 	(sw_s), 
-//    .b	 	(out[15:0]), 
-//    .cin 	(1'b0), 
-//    .cout	(s[16]), 
-//    .s   	(s[15:0]) 
-//	);
-	
-	select_adder adder_sa (	
-		.a	 	(sw_s), 
-		.b	 	(out[15:0]), 
-		.cin 	(1'b0), 
-		.cout	(s[16]), 
-		.s   	(s[15:0]) 
+	ripple_adder adder_ra (
+		.a	 	(Aval), 
+		.b	 	(sw_s), 
+		.fn 	(sub), 
+		.cout	(), 
+		.s   	(sum) 
 	);
 
+    always_ff @(posedge clk) begin
+		if (clr_ld) begin
+			Xval <= 1'b0;
+			Aval <= 8'h00;
+			Bval <= sw_s;
+		end else if (clr_xa) begin
+			Xval <= 1'b0;
+			Aval <= 8'h00;
+		end else if (add | sub) begin
+			Xval <= sum[8];
+			Aval <= sum[7:0];
+		end else if (shift) begin
+			{Xval, Aval, Bval} <= {Xval, Xval, Aval, Bval[7:1]};
+		end
+	end
 
-	// Hex units that display contents of sw and sum register in hex
-	hex_driver hex_a (
+
+	// Hex unit that display contents of sw and sum register in hex
+	hex_driver hex (
 		.clk		(clk),
-		.reset		(reset_s),
-		.in			({sw_s[15:12], sw_s[11:8], sw_s[7:4], sw_s[3:0]}),
-		.hex_seg	(hex_seg_a),
-		.hex_grid	(hex_grid_a)
-	);
-	
-	hex_driver hex_b (
-		.clk		(clk),
-		.reset		(reset_s),
-		.in			({out[15:12], out[11:8], out[7:4], out[3:0]}),
-		.hex_seg	(hex_seg_b),
-		.hex_grid	(hex_grid_b)
+		.reset		(rlc_s),
+		.in			({Aval[7:4], Aval[3:0], Bval[7:4], Bval[3:0]}),
+		.hex_seg	(hex_seg),
+		.hex_grid	(hex_grid)
 	);
 	
 	// Synchchronizers/debouncers
 	sync_debounce button_sync [1:0] (
 	   .clk    (clk),
 	   
-	   .d      ({reset, run_i}),
-	   .q      ({reset_s, run_s})
+	   .d      ({reset_load_clear, run_i}),
+	   .q      ({rlc_s, run_s})
 	);
 	
 		
 	load_reg #(
-	   .DATA_WIDTH(16) // specifying the data width of synchronizer through a parameter
+	   .DATA_WIDTH(8) // specifying the data width of synchronizer through a parameter
 	) sw_sync ( 
 		.clk		(clk), 
 		.reset		(1'b0), // there is no reset for the inputs, so hardcode 0
@@ -110,8 +93,5 @@ module adder_toplevel   (
 		.data_i		(sw_i), 
 		
 		.data_q   	(sw_s) 
-	);
-							
-	assign sign_led = out[16]; // the sign bit of the output
-		
+	);		
 endmodule

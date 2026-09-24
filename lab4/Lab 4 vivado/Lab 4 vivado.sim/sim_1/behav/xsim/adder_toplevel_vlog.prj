@@ -1,0 +1,22 @@
+# compile verilog/system verilog design source files
+verilog xil_defaultlib  \
+"../../../../Lab 4 vivado.srcs/sources_1/imports/new/four_bit_ripple_adder.v" \
+
+sv xil_defaultlib  \
+"../../../../Lab 4 vivado.srcs/sources_1/imports/design_source/hex_driver.sv" \
+"../../../../Lab 4 vivado.srcs/sources_1/imports/design_source/load_reg.sv" \
+"../../../../Lab 4 vivado.srcs/sources_1/imports/design_source/lookahead_adder.sv" \
+"../../../../Lab 4 vivado.srcs/sources_1/imports/new/mini_cla.sv" \
+"../../../../Lab 4 vivado.srcs/sources_1/imports/design_source/negedge_detector.sv" \
+"../../../../Lab 4 vivado.srcs/sources_1/imports/design_source/ripple_adder.sv" \
+"../../../../Lab 4 vivado.srcs/sources_1/imports/design_source/select_adder.sv" \
+"../../../../Lab 4 vivado.srcs/sources_1/imports/new/single_ripple.sv" \
+"../../../../Lab 4 vivado.srcs/sources_1/imports/design_source/sync_debounce.sv" \
+"../../../../Lab 4 vivado.srcs/sources_1/imports/design_source/adder_toplevel.sv" \
+"../../../../Lab 4 vivado.srcs/sources_1/new/control.sv" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort

@@ -1,0 +1,13 @@
+#-----------------------------------------------------------
+# Vivado v2022.2 (64-bit)
+# SW Build 3671981 on Fri Oct 14 04:59:54 MDT 2022
+# IP Build 3669848 on Fri Oct 14 08:30:02 MDT 2022
+# Start of session at: Thu Sep 24 16:07:41 2026
+# Process ID: 116027
+# Current directory: /home/amogk/Vivado/ECE-385-LABS/lab4/Lab 4 vivado/Lab 4 vivado.runs/impl_1
+# Command line: vivado -log adder_toplevel.vdi -applog -product Vivado -messageDb vivado.pb -mode batch -source adder_toplevel.tcl -notrace
+# Log file: /home/amogk/Vivado/ECE-385-LABS/lab4/Lab 4 vivado/Lab 4 vivado.runs/impl_1/adder_toplevel.vdi
+# Journal file: /home/amogk/Vivado/ECE-385-LABS/lab4/Lab 4 vivado/Lab 4 vivado.runs/impl_1/vivado.jou
+# Running On: amogks-laptop, OS: Linux, CPU Frequency: 1100.334 MHz, CPU Physical cores: 16, Host memory: 15934 MB
+#-----------------------------------------------------------
+source adder_toplevel.tcl -notrace

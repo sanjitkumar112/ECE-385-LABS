@@ -1,0 +1,27 @@
+# Vivado project-generated directories (regenerated from source, not needed in git)
+*.cache/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
+*.srcs/*/imports/
+.Xil/
+
+# Vivado logs, journals, backups
+*.jou
+*.log
+*.str
+*.backup.log
+*.backup.jou
+vivado*.jou
+vivado*.log
+webtalk*.log
+webtalk*.jou
+
+# Vivado lock/temp files
+*.lock
+*.zip
+.Xilinx/
+
+# macOS
+.DS_Store

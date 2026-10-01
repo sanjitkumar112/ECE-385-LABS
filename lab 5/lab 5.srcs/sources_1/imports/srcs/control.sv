@@ -26,7 +26,7 @@
 module control (
 	input logic			clk, 
 	input logic			reset,
-
+	
 	input logic  [15:0]	ir,
 	input logic			ben,
 
@@ -45,6 +45,7 @@ module control (
 	output logic [1:0]	pcmux,
 	
 	//You should add additional control signals according to the SLC-3 datapath design
+
 
 	output logic		mem_mem_ena, // Mem Operation Enable
 	output logic		mem_wr_ena  // Mem Write Enable
@@ -86,17 +87,17 @@ module control (
 		gate_mdr = 1'b0;
 		 
 		pcmux = 2'b00;
-		
-	
+		mem_mem_ena = 1'b0;
+		mem_wr_ena = 1'b0;
 		// Assign relevant control signals based on current state
 		case (state)
 			halted: ; 
 			s_18 : 
 				begin 
-					gate_pc = 1'b1;
-					ld_mar = 1'b1;
-					pcmux = 2'b00;
-					ld_pc = 1'b1;
+					gate_pc = 1'b1; // since pc needs to feed to the bus
+					ld_mar = 1'b1; // mar needs to recieve input
+					pcmux = 2'b00; // this is selecting the pc = pc + 1 line
+					ld_pc = 1'b1; // load pcmxu output
 				end
 			s_33_1, s_33_2, s_33_3 : //you may have to think about this as well to adapt to ram with wait-states
 				begin

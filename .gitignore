@@ -4,8 +4,20 @@
 *.ip_user_files/
 *.runs/
 *.sim/
+*.gen/
 *.srcs/*/imports/
 .Xil/
+
+# Vitis workspace build outputs (regenerated from the .xsa and sources)
+.metadata/
+.analytics
+RemoteSystemsTempFiles/
+**/workspace/**/Debug/
+**/workspace/**/Release/
+**/workspace/**/_ide/
+**/workspace/**/export/
+**/workspace/**/logs/
+**/workspace/**/*.elf
 
 # Vivado logs, journals, backups
 *.jou

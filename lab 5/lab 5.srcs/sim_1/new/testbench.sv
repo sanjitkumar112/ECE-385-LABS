@@ -24,7 +24,7 @@ module testbench();
     assign MAR = dut.slc3.cpu.mar;
     assign MDR = dut.slc3.cpu.mdr;
     assign IR  = dut.slc3.cpu.ir;
-    assign BUS = dut.slc3.cpu.databus;
+    assign BUS = dut.slc3.cpu._slc3_bus_;
 
     // Clock: 10 ns period
     initial begin

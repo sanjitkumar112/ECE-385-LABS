@@ -19,7 +19,6 @@
         "ilmb_bram_if_cntlr": "",
         "lmb_bram": ""
       },
-      "microblaze_0_axi_intc": "",
       "mdm_1": "",
       "clk_wiz_1": "",
       "rst_clk_wiz_1_100M": "",
@@ -29,6 +28,8 @@
       "gpio_usb_keycode": "",
       "timer_usb_axi": "",
       "spi_usb": "",
+      "xlconcat_0": "",
+      "microblaze_0_axi_intc": "",
       "microblaze_0_axi_periph": {
         "xbar": "",
         "s00_couplers": {},
@@ -39,8 +40,7 @@
         "m04_couplers": {},
         "m05_couplers": {},
         "m06_couplers": {}
-      },
-      "xlconcat_0": ""
+      }
     },
     "interface_ports": {
       "uart_rtl_0": {
@@ -403,17 +403,6 @@
           }
         }
       },
-      "microblaze_0_axi_intc": {
-        "vlnv": "xilinx.com:ip:axi_intc:4.1",
-        "xci_name": "mb_block_microblaze_0_axi_intc_0",
-        "xci_path": "ip/mb_block_microblaze_0_axi_intc_0/mb_block_microblaze_0_axi_intc_0.xci",
-        "inst_hier_path": "microblaze_0_axi_intc",
-        "parameters": {
-          "C_HAS_FAST": {
-            "value": "1"
-          }
-        }
-      },
       "mdm_1": {
         "vlnv": "xilinx.com:ip:mdm:3.2",
         "xci_name": "mb_block_mdm_1_0",
@@ -516,6 +505,28 @@
           },
           "C_USE_STARTUP": {
             "value": "0"
+          }
+        }
+      },
+      "xlconcat_0": {
+        "vlnv": "xilinx.com:ip:xlconcat:2.1",
+        "xci_name": "mb_block_xlconcat_0_0",
+        "xci_path": "ip/mb_block_xlconcat_0_0/mb_block_xlconcat_0_0.xci",
+        "inst_hier_path": "xlconcat_0",
+        "parameters": {
+          "NUM_PORTS": {
+            "value": "4"
+          }
+        }
+      },
+      "microblaze_0_axi_intc": {
+        "vlnv": "xilinx.com:ip:axi_intc:4.1",
+        "xci_name": "mb_block_microblaze_0_axi_intc_0",
+        "xci_path": "ip/mb_block_microblaze_0_axi_intc_0/mb_block_microblaze_0_axi_intc_0.xci",
+        "inst_hier_path": "microblaze_0_axi_intc",
+        "parameters": {
+          "C_HAS_FAST": {
+            "value": "1"
           }
         }
       },
@@ -1340,17 +1351,6 @@
             ]
           }
         }
-      },
-      "xlconcat_0": {
-        "vlnv": "xilinx.com:ip:xlconcat:2.1",
-        "xci_name": "mb_block_xlconcat_0_0",
-        "xci_path": "ip/mb_block_xlconcat_0_0/mb_block_xlconcat_0_0.xci",
-        "inst_hier_path": "xlconcat_0",
-        "parameters": {
-          "NUM_PORTS": {
-            "value": "4"
-          }
-        }
       }
     },
     "interface_nets": {
@@ -1493,8 +1493,6 @@
         "ports": [
           "clk_wiz_1/clk_out1",
           "microblaze_0/Clk",
-          "microblaze_0_axi_intc/s_axi_aclk",
-          "microblaze_0_axi_intc/processor_clk",
           "microblaze_0_local_memory/LMB_Clk",
           "rst_clk_wiz_1_100M/slowest_sync_clk",
           "axi_uartlite_0/s_axi_aclk",
@@ -1502,6 +1500,10 @@
           "gpio_usb_keycode/s_axi_aclk",
           "gpio_usb_rst/s_axi_aclk",
           "spi_usb/s_axi_aclk",
+          "spi_usb/ext_spi_clk",
+          "timer_usb_axi/s_axi_aclk",
+          "microblaze_0_axi_intc/s_axi_aclk",
+          "microblaze_0_axi_intc/processor_clk",
           "microblaze_0_axi_periph/ACLK",
           "microblaze_0_axi_periph/S00_ACLK",
           "microblaze_0_axi_periph/M00_ACLK",
@@ -1510,8 +1512,6 @@
           "microblaze_0_axi_periph/M03_ACLK",
           "microblaze_0_axi_periph/M04_ACLK",
           "microblaze_0_axi_periph/M05_ACLK",
-          "spi_usb/ext_spi_clk",
-          "timer_usb_axi/s_axi_aclk",
           "microblaze_0_axi_periph/M06_ACLK"
         ]
       },
@@ -1537,12 +1537,13 @@
       "rst_clk_wiz_1_100M_peripheral_aresetn": {
         "ports": [
           "rst_clk_wiz_1_100M/peripheral_aresetn",
-          "microblaze_0_axi_intc/s_axi_aresetn",
           "axi_uartlite_0/s_axi_aresetn",
           "gpio_usb_int/s_axi_aresetn",
           "gpio_usb_keycode/s_axi_aresetn",
           "gpio_usb_rst/s_axi_aresetn",
           "spi_usb/s_axi_aresetn",
+          "timer_usb_axi/s_axi_aresetn",
+          "microblaze_0_axi_intc/s_axi_aresetn",
           "microblaze_0_axi_periph/ARESETN",
           "microblaze_0_axi_periph/S00_ARESETN",
           "microblaze_0_axi_periph/M00_ARESETN",
@@ -1551,7 +1552,6 @@
           "microblaze_0_axi_periph/M03_ARESETN",
           "microblaze_0_axi_periph/M04_ARESETN",
           "microblaze_0_axi_periph/M05_ARESETN",
-          "timer_usb_axi/s_axi_aresetn",
           "microblaze_0_axi_periph/M06_ARESETN"
         ]
       },
@@ -1567,9 +1567,9 @@
           "xlconcat_0/In2"
         ]
       },
-      "spi_usb_sck_t": {
+      "spi_usb_sck_o": {
         "ports": [
-          "spi_usb/sck_t",
+          "spi_usb/sck_o",
           "usb_spi_sclk"
         ]
       },

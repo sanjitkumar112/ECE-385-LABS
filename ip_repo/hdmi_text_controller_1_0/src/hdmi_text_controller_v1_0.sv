@@ -52,25 +52,30 @@ module hdmi_text_controller_v1_0 #
 );
 
 //additional logic variables as necessary to support VGA, and HDMI modules.
-logic clk_25MHz, clk_125MHz, locked;
-logic reset_ah;
-logic hsync, vsync, vde;
-logic [9:0] drawX, drawY;
-logic [3:0] red, green, blue;
+logic clk_25MHz;
+logic clk_125MHz;
+logic locked;
 
+logic [31:0] frame_counter; //this is our frame counter
 logic [31:0] vram [600];
 logic [31:0] color_reg;
-logic [31:0] frame_count;
 
-assign reset_ah = ~axi_aresetn;
+logic hsync;
+logic vsync;
+logic vde;
+logic [9:0] drawX;
+logic [9:0] drawY;
+
+
+logic [3:0] red, green, blue;
 // Instantiation of Axi Bus Interface AXI
 hdmi_text_controller_v1_0_AXI # ( 
     .C_S_AXI_DATA_WIDTH(C_AXI_DATA_WIDTH),
     .C_S_AXI_ADDR_WIDTH(C_AXI_ADDR_WIDTH)
 ) hdmi_text_controller_v1_0_AXI_inst (
-    .frame_count(frame_count),
-    .draw_x({22'd0, drawX}),
-    .draw_y({22'd0, drawY}),
+    .current_draw_x({22'd0, drawX}),
+    .current_draw_y({22'd0, drawY}),
+    .frame_counter(frame_counter),
     .vram(vram),
     .color_reg(color_reg),
     .S_AXI_ACLK(axi_aclk),
@@ -98,90 +103,66 @@ hdmi_text_controller_v1_0_AXI # (
 
 
 //Instiante clocking wizard, VGA sync generator modules, and VGA-HDMI IP here. For a hint, refer to the provided
+//top-level from the previous lab. You should get the IP to generate a valid HDMI signal (e.g. blue screen or gradient)
+//prior to working on the text drawing.
 clk_wiz_0 clk_wiz (
     .clk_out1(clk_25MHz),
     .clk_out2(clk_125MHz),
-    .reset(reset_ah),
+    .reset(~axi_aresetn),
     .locked(locked),
     .clk_in1(axi_aclk)
 );
-
 vga_controller vga (
-    .pixel_clk(clk_25MHz),
-    .reset(reset_ah),
-    .hs(hsync),
-    .vs(vsync),
-    .active_nblank(vde),
-    .sync(),
-    .drawX(drawX),
-    .drawY(drawY)
-);
-
+        .pixel_clk(clk_25MHz),
+        .reset(~axi_aresetn),
+        .hs(hsync),
+        .vs(vsync),
+        .active_nblank(vde),
+        .drawX(drawX),
+        .drawY(drawY)
+    );
 hdmi_tx_0 vga_to_hdmi (
-    .pix_clk(clk_25MHz),
-    .pix_clkx5(clk_125MHz),
-    .pix_clk_locked(locked),
-    .rst(reset_ah),
-    .red(red),
-    .green(green),
-    .blue(blue),
-    .hsync(hsync),
-    .vsync(vsync),
-    .vde(vde),
-    .aux0_din(4'b0),
-    .aux1_din(4'b0),
-    .aux2_din(4'b0),
-    .ade(1'b0),
-    .TMDS_CLK_P(hdmi_clk_p),
-    .TMDS_CLK_N(hdmi_clk_n),
-    .TMDS_DATA_P(hdmi_tx_p),
-    .TMDS_DATA_N(hdmi_tx_n)
-);
+        //Clocking and Reset
+        .pix_clk(clk_25MHz),
+        .pix_clkx5(clk_125MHz),
+        .pix_clk_locked(locked),
+        .rst(~axi_aresetn),
+        //Color and Sync Signals
+        .red(red),
+        .green(green),
+        .blue(blue),
+        .hsync(hsync),
+        .vsync(vsync),
+        .vde(vde),
+        
+        //aux Data (unused)
+        .aux0_din(4'b0),
+        .aux1_din(4'b0),
+        .aux2_din(4'b0),
+        .ade(1'b0),
+        
+        //Differential outputs
+        .TMDS_CLK_P(hdmi_clk_p),          
+        .TMDS_CLK_N(hdmi_clk_n),          
+        .TMDS_DATA_P(hdmi_tx_p),         
+        .TMDS_DATA_N(hdmi_tx_n)          
+    );
 
-logic vsync_prev;
-always_ff @(posedge clk_25MHz)
-begin
-    if (reset_ah) begin
-        frame_count <= 32'd0;
-        vsync_prev  <= 1'b1;
-    end
-    else begin
-        vsync_prev <= vsync;
-        if (vsync_prev && ~vsync)
-            frame_count <= frame_count + 1;
-    end
-end
-logic [6:0]  char_col;
-logic [4:0]  char_row;
-logic [11:0] char_index;
-logic [9:0]  word_index;
-logic [1:0]  byte_index;
-logic [7:0]  char_byte;
 logic [10:0] font_addr;
 logic [7:0]  font_data;
-logic        pixel_on;
+logic [11:0] char_index;
+logic [7:0]  char_byte;
 
-assign char_col   = drawX[9:3];
-assign char_row   = drawY[8:4];
-assign char_index = char_row * 80 + char_col;
-assign word_index = char_index[11:2];
-assign byte_index = char_index[1:0];
-
-always_comb
-begin
-    if (word_index < 600)
-        char_byte = vram[word_index][byte_index*8 +: 8];
-    else
-        char_byte = 8'd0;
-end
-
-assign font_addr = {char_byte[6:0], drawY[3:0]};
-
+assign char_index = (drawY[9:4] * 80) + drawX[9:3];   // row*80 + col
+assign char_byte  = vram[char_index[11:2]][char_index[1:0]*8 +: 8];
+assign font_addr  = {char_byte[6:0], drawY[3:0]};
 font_rom font (
     .addr(font_addr),
     .data(font_data)
 );
 
+// bit 7 is the leftmost pixel; XOR with IV swaps foreground/background
+logic pixel_on;
 assign pixel_on = font_data[7 - drawX[2:0]] ^ char_byte[7];
 
 always_comb
@@ -189,22 +170,25 @@ begin
     if (~vde) begin
         red = 4'h0; green = 4'h0; blue = 4'h0;
     end
-    else if (pixel_on) begin
+    else if (pixel_on) begin   // foreground
         red   = color_reg[27:24];
         green = color_reg[23:20];
         blue  = color_reg[19:16];
     end
-    else begin
+    else begin                 // background
         red   = color_reg[11:8];
         green = color_reg[7:4];
         blue  = color_reg[3:0];
     end
 end
 
-
-//top-level from the previous lab. You should get the IP to generate a valid HDMI signal (e.g. blue screen or gradient)
-//prior to working on the text drawing.
-
+// Async reset: while axi_aresetn is low the VGA controller is also in reset,
+// so vsync stops toggling. A reset checked only on posedge vsync would never fire.
+always_ff @(posedge vsync or negedge axi_aresetn)
+    if (~axi_aresetn)
+        frame_counter <= 32'd0;
+    else
+        frame_counter <= frame_counter + 1;
 // User logic ends
 
 endmodule

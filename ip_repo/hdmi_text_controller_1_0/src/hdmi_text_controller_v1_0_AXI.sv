@@ -38,14 +38,11 @@ module hdmi_text_controller_v1_0_AXI #
 )
 (
     // Users to add ports here
-  input logic [31:0] frame_count,
-  input logic [31:0] draw_x,
-  input logic [31:0] draw_y,
-
-  output logic [31:0] vram [600],
-  output logic [31:0] color_reg,
-
-
+    input logic [31:0] frame_counter,
+    input logic [31:0] current_draw_x,
+    input logic [31:0] current_draw_y,
+    output logic [31:0] vram [600],
+    output logic [31:0] color_reg,
     // User ports ends
 
     // Global Clock Signal
@@ -128,7 +125,7 @@ logic  	axi_rvalid;
 // ADDR_LSB = 2 for 32 bits (n downto 2)
 // ADDR_LSB = 3 for 64 bits (n downto 3)
 localparam integer ADDR_LSB = (C_S_AXI_DATA_WIDTH/32) + 1;
-localparam integer OPT_MEM_ADDR_BITS = 9; //need to read from bith 2 to bit 11
+localparam integer OPT_MEM_ADDR_BITS = 9; //we need to read it from buit 2 - 11 since we know bottom 2 are 0
 //----------------------------------------------
 //-- Signals for user logic register space example
 //------------------------------------------------
@@ -254,20 +251,23 @@ always_ff @( posedge S_AXI_ACLK )
 begin
   if ( S_AXI_ARESETN == 1'b0 )
     begin
-        for (integer i = 0; i < 604; i++)
+        for (integer i = 0; i < 604; i++) //extend this to clear all the registers
         begin
            slv_regs[i] <= 0;
         end
     end
   else begin
-    if (slv_reg_wren && axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] <= 600)
+    if (slv_reg_wren)
       begin
+        if(axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] <= 600)
+        begin
         for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
           if ( S_AXI_WSTRB[byte_index] == 1 ) begin
             // Respective byte enables are asserted as per write strobes, note the use of the index part select operator
             // '+:', you will need to understand how this operator works.
             slv_regs[axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]][(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
-          end  
+          end
+        end
       end
   end
 end    
@@ -370,24 +370,31 @@ end
 // Slave register read enable is asserted when valid address is available
 // and the slave is ready to accept the read address.
 assign slv_reg_rden = axi_arready & S_AXI_ARVALID & ~axi_rvalid;
-
-logic [OPT_MEM_ADDR_BITS:0] rd_index;
-assign rd_index = axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB];
-
 always_comb
 begin
       // Address decoding for reading registers
-    if (rd_index == 601)
-        reg_data_out = frame_count;
-     else if (rd_index == 602)
-        reg_data_out = draw_x;
-     else if (rd_index == 603)
-        reg_data_out = draw_y;
-     else if (rd_index > 603)
-        reg_data_out = 32'd0;           // unused address space
-     else
-        reg_data_out = slv_regs[rd_index];
+      if(axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] <= 600)
+      begin
+      reg_data_out = slv_regs[axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]];
+      end
+      else if(axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 601)
+      begin
+        reg_data_out = frame_counter;
+      end
+      else if (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 602)
+      begin
+        reg_data_out = current_draw_x;
+      end
+      else if (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 603)
+      begin
+        reg_data_out = current_draw_y;
+      end
+      else
+      begin
+        reg_data_out = 32'd0; // unused address space
+      end
 end
+
 
 // Output register or memory read data
 always_ff @( posedge S_AXI_ACLK )
@@ -408,10 +415,9 @@ begin
     end
 end    
 
-assign vram = slv_regs[0:599];
-assign color_reg = slv_regs[600];
-
 // Add user logic here
+assign vram      = slv_regs[0:599];
+assign color_reg = slv_regs[600];
 
 // User logic ends
 

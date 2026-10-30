@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ASCII"?>
+<sdkproject:SdkProject xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sdkproject="http://www.xilinx.com/sdkproject" name="lab_7" location="/home/amogk/Vivado/ECE-385-LABS/lab7/workspace_7/lab_7" platform="/home/amogk/Vivado/ECE-385-LABS/lab7/workspace_7/mb_usb_hdmi_top/export/mb_usb_hdmi_top/mb_usb_hdmi_top.xpfm" platformUID="xilinx:::0.0(custom)" systemProject="lab_7_system" sysConfig="mb_usb_hdmi_top" runtime="cpp" cpu="standalone_microblaze_0" cpuInstance="microblaze_0" os="standalone" mssSignature="0c2fcce44d22ab4d567025808b79fe58">
+  <configuration name="Debug" id="xilinx.gnu.mb.exe.debug.455031382">
+    <configBuildOptions xsi:type="sdkproject:SdkOptions"/>
+    <lastBuildOptions xsi:type="sdkproject:SdkOptions"/>
+  </configuration>
+  <configuration name="Release" id="xilinx.gnu.mb.exe.release.579374181" dirty="true">
+    <configBuildOptions xsi:type="sdkproject:SdkOptions"/>
+  </configuration>
+  <template appTemplateName="hello_world"/>
+</sdkproject:SdkProject>

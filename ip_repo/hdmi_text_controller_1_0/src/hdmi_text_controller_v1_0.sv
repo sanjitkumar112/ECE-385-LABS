@@ -154,7 +154,14 @@ logic [11:0] char_index;
 logic [7:0]  char_byte;
 
 assign char_index = (drawY[9:4] * 80) + drawX[9:3];   // row*80 + col
-assign char_byte  = vram[char_index[11:2]][char_index[1:0]*8 +: 8];
+
+always_comb begin
+    char_byte = 8'h00;
+    if (vde && char_index < 12'd2400)
+        char_byte = vram[char_index[11:2]]
+                        [char_index[1:0]*8 +: 8];
+end
+
 assign font_addr  = {char_byte[6:0], drawY[3:0]};
 font_rom font (
     .addr(font_addr),

@@ -346,7 +346,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>1c55e8c9</spirit:value>
+            <spirit:value>f8eb4ad6</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -368,7 +368,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>1c55e8c9</spirit:value>
+            <spirit:value>f8eb4ad6</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -821,6 +821,16 @@
     <spirit:fileSet>
       <spirit:name>xilinx_verilogsynthesis_view_fileset</spirit:name>
       <spirit:file>
+        <spirit:name>src/hdmi_tx_0/hdmi_tx_0.xci</spirit:name>
+        <spirit:userFileType>xci</spirit:userFileType>
+        <spirit:userFileType>CELL_NAME_vga_to_hdmi</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>src/clk_wiz_0/clk_wiz_0.xci</spirit:name>
+        <spirit:userFileType>xci</spirit:userFileType>
+        <spirit:userFileType>CELL_NAME_clk_wiz</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>src/VGA_controller.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
@@ -837,14 +847,7 @@
       <spirit:file>
         <spirit:name>src/hdmi_text_controller_v1_0.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
-      </spirit:file>
-      <spirit:file>
-        <spirit:name>src/hdmi_tx_0/hdmi_tx_0.xci</spirit:name>
-        <spirit:userFileType>xci</spirit:userFileType>
-      </spirit:file>
-      <spirit:file>
-        <spirit:name>src/clk_wiz_0/clk_wiz_0.xci</spirit:name>
-        <spirit:userFileType>xci</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_2c9486b8</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -870,6 +873,16 @@
     <spirit:fileSet>
       <spirit:name>xilinx_verilogbehavioralsimulation_view_fileset</spirit:name>
       <spirit:file>
+        <spirit:name>src/hdmi_tx_0/hdmi_tx_0.xci</spirit:name>
+        <spirit:userFileType>xci</spirit:userFileType>
+        <spirit:userFileType>CELL_NAME_vga_to_hdmi</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>src/clk_wiz_0/clk_wiz_0.xci</spirit:name>
+        <spirit:userFileType>xci</spirit:userFileType>
+        <spirit:userFileType>CELL_NAME_clk_wiz</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
         <spirit:name>src/VGA_controller.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
         <spirit:userFileType>USED_IN_ipstatic</spirit:userFileType>
@@ -886,14 +899,6 @@
       <spirit:file>
         <spirit:name>src/hdmi_text_controller_v1_0.sv</spirit:name>
         <spirit:fileType>systemVerilogSource</spirit:fileType>
-      </spirit:file>
-      <spirit:file>
-        <spirit:name>src/hdmi_tx_0/hdmi_tx_0.xci</spirit:name>
-        <spirit:userFileType>xci</spirit:userFileType>
-      </spirit:file>
-      <spirit:file>
-        <spirit:name>src/clk_wiz_0/clk_wiz_0.xci</spirit:name>
-        <spirit:userFileType>xci</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -1029,14 +1034,14 @@
       <xilinx:xpmLibraries>
         <xilinx:xpmLibrary>XPM_CDC</xilinx:xpmLibrary>
       </xilinx:xpmLibraries>
-      <xilinx:coreRevision>6</xilinx:coreRevision>
-      <xilinx:coreCreationDateTime>2026-10-29T20:05:18Z</xilinx:coreCreationDateTime>
+      <xilinx:coreRevision>7</xilinx:coreRevision>
+      <xilinx:coreCreationDateTime>2026-10-29T23:38:40Z</xilinx:coreCreationDateTime>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2022.2</xilinx:xilinxVersion>
       <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="a151191a"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="60746b78"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="60820e1d"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="69c1f3b4"/>
       <xilinx:checksum xilinx:scope="ports" xilinx:value="3e16aceb"/>
       <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="30bf43bf"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="246731e6"/>

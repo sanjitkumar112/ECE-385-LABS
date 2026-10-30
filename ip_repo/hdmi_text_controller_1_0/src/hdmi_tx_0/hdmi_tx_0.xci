@@ -2,6 +2,7 @@
   "schema": "xilinx.com:schema:json_instance:1.0",
   "ip_inst": {
     "xci_name": "hdmi_tx_0",
+    "cell_name": "vga_to_hdmi",
     "component_reference": "realdigital.org:realdigital:hdmi_tx:1.0",
     "ip_revision": "2",
     "gen_directory": "../../../../lab7/lab7.tmp/hdmi_text_controller_v1_0_project/hdmi_text_controller_v1_0_project.gen/sources_1/ip/hdmi_tx_0",

@@ -4,7 +4,7 @@
     "xci_name": "lab7_hdmi_text_controller_0_0",
     "cell_name": "hdmi_text_controller_0",
     "component_reference": "user.org:user:hdmi_text_controller:1.0",
-    "ip_revision": "6",
+    "ip_revision": "7",
     "gen_directory": "../../../../../../lab7.gen/sources_1/bd/lab7/ip/lab7_hdmi_text_controller_0_0",
     "parameters": {
       "component_parameters": {
@@ -35,7 +35,7 @@
       },
       "runtime_parameters": {
         "IPCONTEXT": [ { "value": "IP_Integrator" } ],
-        "IPREVISION": [ { "value": "6" } ],
+        "IPREVISION": [ { "value": "7" } ],
         "MANAGED": [ { "value": "TRUE" } ],
         "OUTPUTDIR": [ { "value": "../../../../../../lab7.gen/sources_1/bd/lab7/ip/lab7_hdmi_text_controller_0_0" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],

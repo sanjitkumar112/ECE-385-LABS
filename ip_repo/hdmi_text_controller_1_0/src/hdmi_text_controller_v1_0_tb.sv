@@ -252,28 +252,39 @@ module hdmi_text_controller_tb();
         arstn <= 1;
         
         //remember AXI addresses are BYTE addresses!
-        //This writes something into the Control Register so that we're not simulating a black screen
-        //write control reg to set foreground (x36E) and background (xE94)
-        repeat (4) @(posedge aclk) axi_write((600*4), {16'h036B,16'h0E94}); 
-        
-        //Write into every one of the 600 VRAM registers, note that this is different than what the driver C code does
+        //Week 2: the Week 1 control register is gone (byte 600*4 is now just VRAM), so its write was removed.
+
+        //Write into every one of the 1200 VRAM words (Week 2: VRAM is BRAM at word 0x000-0x4AF), note that this is different than what the driver C code does
         //because the testbench axi_write task only generates aligned (full 32-bit) AXI writes (e.g. write_strb is always F)
         //The C code on the MicroBlaze expects to be able to do byte and halfword (16-bit) writes, therefore if the
-        //simulation works but the checksum does not pass in the hardware, check handling of write_strb. 
-        for(i=0; i < 600; i++) begin 
+        //simulation works but the checksum does not pass in the hardware, check handling of write_strb.
+        for(i=0; i < 1200; i++) begin
 		  repeat (4) @(posedge aclk) axi_write(4*i, i);
         end
-        
-        //The following is the readback routine. It tests that your AXI IP is capable of reading back all 601
-        //VRAM registers via AXI (once you've properly filled in axi_read as above). Note that the verification
-        //of the readback results is automatic, it will throw an assertion if the readback result is not as expected        
-        for(i=0; i < 600; i++) begin 
+
+        //Readback of all 1200 VRAM words. BRAM returns data one clock late, so this checks the
+        //extra read wait state (rd_pending) in the AXI module.
+        for(i=0; i < 1200; i++) begin
 		  repeat (4) @(posedge aclk) axi_read(4*i, tb_read);
 		  axi_read_assert:assert (tb_read == i) else $error ("AXI readback mismatch at address %x. Expected: %x. Actual:%x.", i, i, tb_read);
         end
-        
-        repeat (4) @(posedge aclk) axi_read(600*4, tb_read);
-        $info ("Read back of control register: %x", tb_read);
+
+        //Palette registers (word 0x800-0x807 = byte 0x2000-0x201C). Readback is required for full credit (IAXI p.28).
+        for(i=0; i < 8; i++) begin
+		  repeat (4) @(posedge aclk) axi_write(32'h2000 + 4*i, 32'hA5A50000 + i);
+        end
+        for(i=0; i < 8; i++) begin
+		  repeat (4) @(posedge aclk) axi_read(32'h2000 + 4*i, tb_read);
+		  palette_read_assert:assert (tb_read == 32'hA5A50000 + i) else $error ("Palette readback mismatch at palette %0d. Expected: %x. Actual:%x.", i, 32'hA5A50000 + i, tb_read);
+        end
+
+        //Synchronization registers (word 0x808-0x80A = byte 0x2020-0x2028), read-only
+        repeat (4) @(posedge aclk) axi_read(32'h2020, tb_read);
+        $info ("Frame counter: %0d", tb_read);
+        repeat (4) @(posedge aclk) axi_read(32'h2024, tb_read);
+        $info ("DrawX: %0d", tb_read);
+        repeat (4) @(posedge aclk) axi_read(32'h2028, tb_read);
+        $info ("DrawY: %0d", tb_read);
         
         //Make sure you've set the simulation settings to run to 'all', rather than the 1000ns default
 		

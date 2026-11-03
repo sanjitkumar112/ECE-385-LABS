@@ -57,26 +57,43 @@ logic clk_125MHz;
 logic locked;
 
 logic [31:0] frame_counter; //this is our frame counter
-logic [31:0] vram [600];
 logic [31:0] color_reg;
 
 logic hsync;
 logic vsync;
 logic vde;
+logic vde_d, hsync_d, vsync_d;   // one-clock-delayed copies (match BRAM latency)
 logic [9:0] drawX;
 logic [9:0] drawY;
 
 
 logic [3:0] red, green, blue;
+
+// VRAM block memory ports (A = AXI side, B = drawing side)
+logic ena_a;
+logic ena_b;
+logic [3:0] wea_a;
+logic [3:0] wea_b;
+logic [10:0] addr_a;
+logic [10:0] addr_b;
+logic [31:0] din_a;
+logic [31:0] din_b;
+logic [31:0] dout_a;
+logic [31:0] dout_b;
+
 // Instantiation of Axi Bus Interface AXI
 hdmi_text_controller_v1_0_AXI # ( 
     .C_S_AXI_DATA_WIDTH(C_AXI_DATA_WIDTH),
     .C_S_AXI_ADDR_WIDTH(C_AXI_ADDR_WIDTH)
 ) hdmi_text_controller_v1_0_AXI_inst (
+    .bram_ena(ena_a),
+    .bram_wea(wea_a),
+    .bram_addr(addr_a),
+    .bram_din(din_a),
+    .bram_dout(dout_a),
     .current_draw_x({22'd0, drawX}),
     .current_draw_y({22'd0, drawY}),
     .frame_counter(frame_counter),
-    .vram(vram),
     .color_reg(color_reg),
     .S_AXI_ACLK(axi_aclk),
     .S_AXI_ARESETN(axi_aresetn),
@@ -131,10 +148,10 @@ hdmi_tx_0 vga_to_hdmi (
         .red(red),
         .green(green),
         .blue(blue),
-        .hsync(hsync),
-        .vsync(vsync),
-        .vde(vde),
-        
+        .hsync(hsync_d),   // delayed to line up with the BRAM read
+        .vsync(vsync_d),
+        .vde(vde_d),
+
         //aux Data (unused)
         .aux0_din(4'b0),
         .aux1_din(4'b0),
@@ -148,21 +165,61 @@ hdmi_tx_0 vga_to_hdmi (
         .TMDS_DATA_N(hdmi_tx_n)          
     );
 
+//instantiate the block memory (port signals declared at the top)
+
+
+
+blk_mem_gen_0 block_memory (
+  // port A: CPU side (AXI clock)
+  .clka(axi_aclk),
+  .ena(ena_a),
+  .wea(wea_a),
+  .addra(addr_a),
+  .dina(din_a),
+  .douta(dout_a),
+  // port B: drawing side (pixel clock)
+  .clkb(clk_25MHz),
+  .enb(ena_b),
+  .web(wea_b),
+  .addrb(addr_b),
+  .dinb(din_b),
+  .doutb(dout_b)
+);
+
 logic [10:0] font_addr;
 logic [7:0]  font_data;
 logic [11:0] char_index;
 logic [7:0]  char_byte;
 
 assign char_index = (drawY[9:4] * 80) + drawX[9:3];   // row*80 + col
+assign addr_b = char_index[11:2];
+
+// port B only reads
+assign ena_b = 1'b1;
+assign wea_b = 4'b0000;
+assign din_b = 32'd0;
+
+// BRAM data arrives one clock after addr_b, so keep one-clock-old copies
+// of everything used after the read so they line up with dout_b
+logic [11:0] char_index_d;
+logic [9:0]  drawX_d, drawY_d;
+
+always_ff @(posedge clk_25MHz) begin
+    char_index_d <= char_index;
+    drawX_d      <= drawX;
+    drawY_d      <= drawY;
+    vde_d        <= vde;
+    hsync_d      <= hsync;
+    vsync_d      <= vsync;
+end
 
 always_comb begin
     char_byte = 8'h00;
-    if (vde && char_index < 12'd2400)
-        char_byte = vram[char_index[11:2]]
-                        [char_index[1:0]*8 +: 8];
+    if (vde_d && char_index_d < 12'd2400)
+        char_byte = dout_b[char_index_d[1:0]*8 +: 8];
 end
 
-assign font_addr  = {char_byte[6:0], drawY[3:0]};
+assign font_addr  = {char_byte[6:0], drawY_d[3:0]};
 font_rom font (
     .addr(font_addr),
     .data(font_data)
@@ -170,11 +227,11 @@ font_rom font (
 
 // bit 7 is the leftmost pixel; XOR with IV swaps foreground/background
 logic pixel_on;
-assign pixel_on = font_data[7 - drawX[2:0]] ^ char_byte[7];
+assign pixel_on = font_data[7 - drawX_d[2:0]] ^ char_byte[7];
 
 always_comb
 begin
-    if (~vde) begin
+    if (~vde_d) begin
         red = 4'h0; green = 4'h0; blue = 4'h0;
     end
     else if (pixel_on) begin   // foreground

@@ -5,7 +5,7 @@
     "cell_name": "clk_wiz",
     "component_reference": "xilinx.com:ip:clk_wiz:6.0",
     "ip_revision": "11",
-    "gen_directory": "../../../../lab7/lab7.tmp/hdmi_text_controller_v1_0_project/hdmi_text_controller_v1_0_project.gen/sources_1/ip/clk_wiz_0",
+    "gen_directory": "../../../../lab7/lab7.tmp/hdmi_text_controller_v2_0_project/hdmi_text_controller_v2_0_project.gen/sources_1/ip/clk_wiz_0",
     "parameters": {
       "component_parameters": {
         "Component_Name": [ { "value": "clk_wiz_0", "resolve_type": "user", "usage": "all" } ],
@@ -602,7 +602,7 @@
         "IPCONTEXT": [ { "value": "IP_Flow" } ],
         "IPREVISION": [ { "value": "11" } ],
         "MANAGED": [ { "value": "TRUE" } ],
-        "OUTPUTDIR": [ { "value": "../../../../lab7/lab7.tmp/hdmi_text_controller_v1_0_project/hdmi_text_controller_v1_0_project.gen/sources_1/ip/clk_wiz_0" } ],
+        "OUTPUTDIR": [ { "value": "../../../../lab7/lab7.tmp/hdmi_text_controller_v2_0_project/hdmi_text_controller_v2_0_project.gen/sources_1/ip/clk_wiz_0" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
         "SHAREDDIR": [ { "value": "." } ],
         "SWVERSION": [ { "value": "2022.2" } ],

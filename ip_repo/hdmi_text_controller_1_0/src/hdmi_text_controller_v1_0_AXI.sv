@@ -38,11 +38,16 @@ module hdmi_text_controller_v1_0_AXI #
 )
 (
     // Users to add ports here
+  output logic        bram_ena,
+  output logic [3:0]  bram_wea,
+  output logic [10:0] bram_addr,
+  output logic [31:0] bram_din,
+  input  logic [31:0] bram_dout,
+
     input logic [31:0] frame_counter,
     input logic [31:0] current_draw_x,
     input logic [31:0] current_draw_y,
-    output logic [31:0] vram [600],
-    output logic [31:0] color_reg,
+    output logic [31:0] palette [8],   // 16 colors, 2 per register (word 0x800-0x807)
     // User ports ends
 
     // Global Clock Signal
@@ -125,7 +130,7 @@ logic  	axi_rvalid;
 // ADDR_LSB = 2 for 32 bits (n downto 2)
 // ADDR_LSB = 3 for 64 bits (n downto 3)
 localparam integer ADDR_LSB = (C_S_AXI_DATA_WIDTH/32) + 1;
-localparam integer OPT_MEM_ADDR_BITS = 9; //we need to read it from buit 2 - 11 since we know bottom 2 are 0
+localparam integer OPT_MEM_ADDR_BITS = 11; // word index = addr[13:2], 12 bits (up to word 0x80A); bit 11 picks BRAM vs registers
 //----------------------------------------------
 //-- Signals for user logic register space example
 //------------------------------------------------
@@ -138,7 +143,8 @@ localparam integer OPT_MEM_ADDR_BITS = 9; //we need to read it from buit 2 - 11 
 //Note: the provided Verilog template had the registered declared as above, but in order to give 
 //students a hint we have replaced the 4 individual registers with an unpacked array of packed logic. 
 //Note that you as the student will still need to extend this to the full register set needed for the lab.
-logic [C_S_AXI_DATA_WIDTH-1:0] slv_regs[604];
+// Week 2: VRAM lives in BRAM; only the 8 palette registers are FPGA registers
+// (palette is declared as an output port above so the drawing logic can read it)
 logic	 slv_reg_rden;
 logic	 slv_reg_wren;
 logic [C_S_AXI_DATA_WIDTH-1:0]	 reg_data_out;
@@ -159,6 +165,8 @@ assign S_AXI_RVALID	= axi_rvalid;
 // axi_awready is asserted for one S_AXI_ACLK clock cycle when both
 // S_AXI_AWVALID and S_AXI_WVALID are asserted. axi_awready is
 // de-asserted when reset is low.
+
+
 
 always_ff @( posedge S_AXI_ACLK )
 begin
@@ -251,26 +259,47 @@ always_ff @( posedge S_AXI_ACLK )
 begin
   if ( S_AXI_ARESETN == 1'b0 )
     begin
-        for (integer i = 0; i < 604; i++) //extend this to clear all the registers
+        for (integer i = 0; i < 8; i++) // clear the palette registers
         begin
-           slv_regs[i] <= 0;
+           palette[i] <= 0;
         end
     end
   else begin
     if (slv_reg_wren)
       begin
-        if(axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] <= 600)
+        // Word 0x800-0x807 (bit 11 set): palette registers. VRAM writes go to BRAM instead.
+        if(axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] >= 12'h800 &&
+           axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] <= 12'h807)
         begin
         for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
           if ( S_AXI_WSTRB[byte_index] == 1 ) begin
             // Respective byte enables are asserted as per write strobes, note the use of the index part select operator
             // '+:', you will need to understand how this operator works.
-            slv_regs[axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]][(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+            palette[axi_awaddr[ADDR_LSB+2:ADDR_LSB]][(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
           end
         end
       end
   end
 end    
+
+// BRAM port A: VRAM writes and reads from the CPU.
+// During a VRAM write, use the write address and WSTRB as the byte write enable.
+// Otherwise point at the read address so reads see that word one clock later.
+always_comb
+begin
+    bram_ena = 1'b1;
+    bram_din = S_AXI_WDATA;
+    if (slv_reg_wren && axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] < 1200)
+    begin
+        bram_addr = axi_awaddr[ADDR_LSB+10:ADDR_LSB];   // 11-bit BRAM address
+        bram_wea  = S_AXI_WSTRB;
+    end
+    else
+    begin
+        bram_addr = axi_araddr[ADDR_LSB+10:ADDR_LSB];
+        bram_wea  = 4'b0000;
+    end
+end
 
 // Implement write response logic generation
 // The write response and response valid signals are asserted by the slave 
@@ -343,21 +372,27 @@ end
 // bus and axi_rresp indicates the status of read transaction.axi_rvalid 
 // is deasserted on reset (active low). axi_rresp and axi_rdata are 
 // cleared to zero on reset (active low).  
+// BRAM returns data one clock after it sees the address, so wait one extra
+// cycle (rd_pending) before raising RVALID.
+logic rd_pending;
+
 always_ff @( posedge S_AXI_ACLK )
 begin
   if ( S_AXI_ARESETN == 1'b0 )
     begin
       axi_rvalid <= 0;
       axi_rresp  <= 0;
-    end 
+      rd_pending <= 0;
+    end
   else
-    begin    
-      if (axi_arready && S_AXI_ARVALID && ~axi_rvalid)
+    begin
+      rd_pending <= slv_reg_rden;   // high the cycle after the address is accepted
+      if (rd_pending)
         begin
-          // Valid read data is available at the read data bus
+          // Valid read data (BRAM or register) is now ready
           axi_rvalid <= 1'b1;
           axi_rresp  <= 2'b0; // 'OKAY' response
-        end   
+        end
       else if (axi_rvalid && S_AXI_RREADY)
         begin
           // Read data is accepted by the master
@@ -373,19 +408,24 @@ assign slv_reg_rden = axi_arready & S_AXI_ARVALID & ~axi_rvalid;
 always_comb
 begin
       // Address decoding for reading registers
-      if(axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] <= 600)
+      if(axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] < 1200)
       begin
-      reg_data_out = slv_regs[axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB]];
+        reg_data_out = bram_dout;          // VRAM 0x000-0x4AF, valid once rd_pending is high
       end
-      else if(axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 601)
+      else if(axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] >= 12'h800 &&
+              axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] <= 12'h807)
+      begin
+        reg_data_out = palette[axi_araddr[ADDR_LSB+2:ADDR_LSB]];   // palette 0x800-0x807
+      end
+      else if(axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 12'h808)
       begin
         reg_data_out = frame_counter;
       end
-      else if (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 602)
+      else if (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 12'h809)
       begin
         reg_data_out = current_draw_x;
       end
-      else if (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 603)
+      else if (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 12'h80A)
       begin
         reg_data_out = current_draw_y;
       end
@@ -405,10 +445,8 @@ begin
     end 
   else
     begin    
-      // When there is a valid read address (S_AXI_ARVALID) with 
-      // acceptance of read address by the slave (axi_arready), 
-      // output the read dada 
-      if (slv_reg_rden)
+      // Capture one cycle after the address was accepted, when BRAM data is ready
+      if (rd_pending)
         begin
           axi_rdata <= reg_data_out;     // register read data
         end   
@@ -416,8 +454,6 @@ begin
 end    
 
 // Add user logic here
-assign vram      = slv_regs[0:599];
-assign color_reg = slv_regs[600];
 
 // User logic ends
 

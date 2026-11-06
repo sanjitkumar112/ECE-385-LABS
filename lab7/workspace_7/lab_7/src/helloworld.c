@@ -56,7 +56,7 @@ int main()
 
     xil_printf("Starting hdmi test\n");
     while(1) {
-    	hdmiTestWeek1();
+    	hdmiTestWeek2();
     }
 
     cleanup_platform();

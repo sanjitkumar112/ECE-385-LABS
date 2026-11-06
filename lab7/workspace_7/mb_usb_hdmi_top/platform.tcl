@@ -23,3 +23,15 @@ platform config -updatehw {/home/amogk/Vivado/ECE-385-LABS/lab7/mb_usb_hdmi_top.
 platform clean
 platform clean
 platform generate
+platform active {mb_usb_hdmi_top}
+platform config -updatehw {/home/amogk/Vivado/ECE-385-LABS/lab7/mb_usb_hdmi_top_7_2.xsa}
+platform config -updatehw {/home/amogk/Vivado/ECE-385-LABS/lab7/mb_usb_hdmi_top.xsa}
+platform clean
+platform generate
+platform config -updatehw {/home/amogk/Vivado/ECE-385-LABS/lab7/mb_usb_hdmi_top.xsa}
+platform clean
+platform config -updatehw {/home/amogk/Vivado/ECE-385-LABS/lab7/mb_usb_hdmi_top.xsa}
+platform clean
+platform clean
+platform clean
+platform generate

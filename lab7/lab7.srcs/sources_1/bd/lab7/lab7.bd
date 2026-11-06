@@ -847,7 +847,7 @@
         }
       },
       "hdmi_text_controller_0": {
-        "vlnv": "user.org:user:hdmi_text_controller:1.0",
+        "vlnv": "user.org:user:hdmi_text_controller:2.0",
         "xci_name": "lab7_hdmi_text_controller_0_0",
         "xci_path": "ip/lab7_hdmi_text_controller_0_0/lab7_hdmi_text_controller_0_0.xci",
         "inst_hier_path": "hdmi_text_controller_0"

@@ -3,119 +3,150 @@
 /***************************** Include Files *******************************/
 #include "hdmi_text_controller.h"
 #include "stdio.h"
+#include "stdlib.h"
 #include "string.h"
 #include "sleep.h"
 
 /************************** Function Definitions ***************************/
 
-void hdmiSetColor(int background, int foreground)
+void paletteTest()
 {
-	hdmi_ctrl->COLOR = foreground << 16 | background;
+	textHDMIColorClr();
+
+	for (int i = 0; i < 8; i ++)
+	{
+		char color_string[80];
+		sprintf(color_string, "Foreground: %d background %d", 2*i, 2*i+1);
+		textHDMIDrawColorText (color_string, 0, 2*i, 2*i, 2*i+1);
+		sprintf(color_string, "Foreground: %d background %d", 2*i+1, 2*i);
+		textHDMIDrawColorText (color_string, 40, 2*i, 2*i+1, 2*i);
+	}
+	textHDMIDrawColorText ("The above text should cycle through random colors", 0, 25, 0, 1);
+
+
+	for (int i = 0; i < 10; i++)
+	{
+		sleep_MB (1);
+		for (int j = 0; j < 16; j++)
+			setColorPalette(j, 	rand() % 16, rand() % 16,rand() % 16); //set color 0 to random color;
+
+	}
 }
 
-void hdmiClr()
+void textHDMIColorClr()
 {
-	for (int i = 0; i<(ROWS*COLUMNS); i++)
+	for (int i = 0; i<(ROWS*COLUMNS) * 2; i++)
 	{
 		hdmi_ctrl->VRAM[i] = 0x00;
 	}
 }
 
-void hdmiTestWeek1()
+void textHDMIDrawColorText(char* str, int x, int y, uint8_t background, uint8_t foreground)
 {
-	hdmiSetColor(BLACK, WHITE);
-	hdmiClr();
+	int i = 0;
+	while (str[i]!=0)
+	{
+		hdmi_ctrl->VRAM[(y*COLUMNS + x + i) * 2] = foreground << 4 | background;
+		hdmi_ctrl->VRAM[(y*COLUMNS + x + i) * 2 + 1] = str[i];
+		i++;
+	}
+}
 
-	//Register write and readback test
-	uint32_t checksum[ROWS], readsum[ROWS];
+void setColorPalette (uint8_t color, uint8_t red, uint8_t green, uint8_t blue)
+{
+	//fill in this function to set the color palette entry <color> to <red>, <green>, <blue> 12-bit color
+	uint32_t index = color / 2;
+    uint32_t shift = (color % 2) * 16;
 
-	for (int j = 0; j < ROWS; j++)
-	{
-		checksum[j] = 0;
-		for (int i = 0; i < COLUMNS; i++)
-		{
-			hdmi_ctrl->VRAM[j*COLUMNS + i] = i + j;
-			checksum[j] += i + j;
-		}
-	}
-	
-	for (int j = 0; j < ROWS; j++)
-	{
-		readsum[j] = 0;
-		for (int i = 0; i < COLUMNS; i++)
-		{
-			readsum[j] += hdmi_ctrl->VRAM[j*COLUMNS + i];
-			//printf ("%x \n\r", hdmi_ctrl->VRAM[j*COLUMNS + i]);
-		}
-		printf ("Row: %d, Checksum: %x, Read-back Checksum: %x\n\r", j, checksum[j], readsum[j]);
-		if (checksum[j] != readsum[j])
-		{
-			printf ("Checksum mismatch!, check your AXI read/write logic\n\r");
-			while (1){};
-		}
-	}
-	
-	printf ("Checksum code passed!...starting color test \n\r");
-	sleep_MB (5);
-	hdmiSetColor(DIM_GRN, BRIGHT_GRN);
-	hdmiClr();
-	char greentest[] = "This text should draw in green";
-	{
-		for (int j = 0; j < ROWS; j++)
-		{
-			memcpy((void*)&hdmi_ctrl->VRAM[j*COLUMNS]+j,greentest, sizeof(greentest));
-		}
-	}
-	sleep_MB (5);
-	hdmiSetColor(DIM_RED, BRIGHT_RED);
-	hdmiClr();
-	char redtest[] = "This text should draw in red";
-	{
-		for (int j = 0; j < ROWS; j++)
-		{
-			memcpy((void*)&hdmi_ctrl->VRAM[j*COLUMNS]+(ROWS-j),redtest, sizeof(redtest));
-		}
-	}
-	sleep_MB (5);
-	hdmiSetColor(DIM_BLU, BRIGHT_BLU);
-	hdmiClr();
-	char blutest[] = "This text should draw in blue";
-	{
-		for (int j = 0; j < ROWS; j++)
-		{
-			memcpy((void*)&hdmi_ctrl->VRAM[j*COLUMNS],blutest, sizeof(blutest));
-		}
-	}
-	sleep_MB (5);
-	hdmiClr();
-	char inverted[] = "This text should draw inverted";
-	for (int i = 0; i < sizeof(inverted); i++)
-		inverted[i] |= 0x80;
+    uint32_t rgb = ((uint32_t)(red & 0xF) << 8 | ((uint32_t)(green & 0xF) << 4) | (uint32_t)(blue & 0xF);
 
-	hdmiSetColor(DIM_GRN, BRIGHT_GRN);
+    uint32_t value = hdmi_ctrl->PALETTE[index];
+
+    value &= ~(0xFFFu << shift);
+    value |= rgb << shift;
+
+    hdmi_ctrl->PALETTE[index] = value;
+}
+
+void sleepframe(uint32_t frames)
+{
+	uint32_t last_frame_count = hdmi_ctrl->FRAME_COUNT;
+	while (hdmi_ctrl->FRAME_COUNT < last_frame_count + frames)
+	{}
+}
+
+
+void textHDMIColorScreenSaver()
+{
+
+	char color_string[80];
+    int fg, bg, x, y;
+	char dvd_string[80];
+	uint8_t old_string[160];
+	int dvd_x = 0;
+	int dvd_y = 0;
+	int dvd_dx = 1;
+	int dvd_dy = 1;
+
+	int8_t dvd_colors[3] = {0x07, 0x07, 0x07};
+	int8_t dvd_d_colors[3] = {-1, +1, -1};
+
+	paletteTest();
+	textHDMIColorClr();
+
+	memset(old_string, 0, sizeof(old_string));
+	sprintf(dvd_string, "%s and %s completed ECE 385!", "amogk2", "sanjit3");
+
+	//initialize palette
+	for (int i = 0; i < 16; i++)
 	{
-		for (int j = 0; j < ROWS; j++)
+		setColorPalette (i, colors[i].red, colors[i].green, colors[i].blue);
+	}
+	while (1)
+	{
+		if (hdmi_ctrl->FRAME_COUNT % 10 == 0) //every 10 frames update forground
 		{
-			if (j%2==0)
-				memcpy((void*)&hdmi_ctrl->VRAM[j*COLUMNS]+j,greentest, sizeof(greentest));
-			else
-				memcpy((void*)&hdmi_ctrl->VRAM[j*COLUMNS]+j,inverted, sizeof(inverted));
+			//restore VRAM bytes into background to undo 'DVD' text
+			memcpy(&(hdmi_ctrl->VRAM[(dvd_y*COLUMNS + dvd_x) * 2]), old_string, strlen(dvd_string)*2);
+
+			if ( (dvd_x + dvd_dx >= 80-strlen(dvd_string)) || (dvd_x + dvd_dx < 0)) //check X bound
+				dvd_dx = -1*dvd_dx;
+			if ( (dvd_y + dvd_dy >= 30) || (dvd_y + dvd_dy < 0)) //check Y bound
+				dvd_dy = -1*dvd_dy;
+			dvd_x += dvd_dx;
+			dvd_y += dvd_dy;
+
+			//store VRAM bytes into buffer before overwriting with 'DVD' text.
+			memcpy(old_string, &(hdmi_ctrl->VRAM[(dvd_y*COLUMNS + dvd_x) * 2]), strlen(dvd_string)*2);
+			textHDMIDrawColorText (dvd_string, dvd_x, dvd_y, 0, (rand() % 7) + 9);
 		}
+
+		if (hdmi_ctrl->FRAME_COUNT % 30 == 0) //every 30 frames update background
+			{
+				fg = rand() % 16;
+				bg = rand() % 16;
+				while (fg == bg)
+				{
+					fg = rand() % 16;
+					bg = rand() % 16;
+				}
+				sprintf(color_string, "Drawing %s text with %s background", colors[fg].name, colors[bg].name);
+				x = rand() % (80-strlen(color_string));
+				y = rand() % 30;
+
+				textHDMIDrawColorText (color_string, x, y, bg, fg);
+		}
+
+		sleepframe(1);//sleep the rest of the frame
 	}
-	sleep_MB (5);
+}
 
-	hdmiSetColor(BLACK, WHITE);
-	hdmiClr();
+//Call this function for your Week 2 test
+void hdmiTestWeek2()
+{
+	paletteTest();
+	printf ("Palette test passed, beginning screensaver loop\n\r");
 
-	char completed[] = "Synchronization registers test, verify frame counter updates on display";
-	memcpy((void*)&hdmi_ctrl->VRAM[0],completed, sizeof(completed));
-	printf( "%s \n\r", completed);
 
-	uint32_t initial_frame = hdmi_ctrl->FRAME_COUNT;
-	while ( (hdmi_ctrl->FRAME_COUNT - initial_frame) < 60*10)
-	{
-		uint32_t old_frame_counter = hdmi_ctrl->FRAME_COUNT;
-		while (old_frame_counter == hdmi_ctrl->FRAME_COUNT); //wait for new frame
-		sprintf ( (&hdmi_ctrl->VRAM[0] + 80*29), "Frame Counter: %d; Vsync DrawX: %d; Vsync DrawY: %d", hdmi_ctrl->FRAME_COUNT, hdmi_ctrl->DRAWX, hdmi_ctrl->DRAWY);
-	}
+    textHDMIColorScreenSaver();
 }

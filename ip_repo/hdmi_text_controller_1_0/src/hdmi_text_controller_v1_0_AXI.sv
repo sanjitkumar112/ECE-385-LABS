@@ -177,7 +177,7 @@ begin
     end 
   else
     begin    
-      if (~axi_awready && S_AXI_AWVALID && S_AXI_WVALID && aw_en)
+      if (~axi_awready && S_AXI_AWVALID && S_AXI_WVALID && aw_en && !read_busy)
         begin
           // slave is ready to accept write address when 
           // there is a valid write address and write data
@@ -210,7 +210,7 @@ begin
     end 
   else
     begin    
-      if (~axi_awready && S_AXI_AWVALID && S_AXI_WVALID && aw_en)
+      if (~axi_awready && S_AXI_AWVALID && S_AXI_WVALID && aw_en && !read_busy)
         begin
           // Write Address latching 
           axi_awaddr <= S_AXI_AWADDR;
@@ -231,7 +231,7 @@ begin
     end 
   else
     begin    
-      if (~axi_wready && S_AXI_WVALID && S_AXI_AWVALID && aw_en )
+      if (~axi_wready && S_AXI_WVALID && S_AXI_AWVALID && aw_en && !read_busy)
         begin
           // slave is ready to accept write data when 
           // there is a valid write address and write data
@@ -350,7 +350,7 @@ begin
     end 
   else
     begin    
-      if (~axi_arready && S_AXI_ARVALID)
+      if (!read_busy && S_AXI_ARVALID && aw_en && !axi_awready && !axi_wready && !(S_AXI_AWVALID && S_AXI_WVALID))
         begin
           // indicates that the slave has acceped the valid read address
           axi_arready <= 1'b1;
@@ -375,6 +375,9 @@ end
 // BRAM returns data one clock after it sees the address, so wait one extra
 // cycle (rd_pending) before raising RVALID.
 logic rd_pending;
+logic read_busy;
+
+assign read_busy = axi_arready || rd_pending || axi_rvalid;
 
 always_ff @( posedge S_AXI_ACLK )
 begin

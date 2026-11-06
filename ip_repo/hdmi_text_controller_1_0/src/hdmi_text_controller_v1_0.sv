@@ -57,7 +57,7 @@ logic clk_125MHz;
 logic locked;
 
 logic [31:0] frame_counter; //this is our frame counter
-logic [31:0] color_reg;
+logic [31:0] palette [8];
 
 logic hsync;
 logic vsync;
@@ -94,7 +94,7 @@ hdmi_text_controller_v1_0_AXI # (
     .current_draw_x({22'd0, drawX}),
     .current_draw_y({22'd0, drawY}),
     .frame_counter(frame_counter),
-    .color_reg(color_reg),
+    .palette(palette),
     .S_AXI_ACLK(axi_aclk),
     .S_AXI_ARESETN(axi_aresetn),
     .S_AXI_AWADDR(axi_awaddr),
@@ -189,10 +189,10 @@ blk_mem_gen_0 block_memory (
 logic [10:0] font_addr;
 logic [7:0]  font_data;
 logic [11:0] char_index;
-logic [7:0]  char_byte;
+logic [15:0]  char_byte;
 
 assign char_index = (drawY[9:4] * 80) + drawX[9:3];   // row*80 + col
-assign addr_b = char_index[11:2];
+assign addr_b = vde ? char_index[11:1] : 11'd0;
 
 // port B only reads
 assign ena_b = 1'b1;
@@ -214,12 +214,12 @@ always_ff @(posedge clk_25MHz) begin
 end
 
 always_comb begin
-    char_byte = 8'h00;
+    char_byte = 16'h0000;
     if (vde_d && char_index_d < 12'd2400)
-        char_byte = dout_b[char_index_d[1:0]*8 +: 8];
+        char_byte = dout_b[char_index_d[0]*16 +: 16];
 end
 
-assign font_addr  = {char_byte[6:0], drawY_d[3:0]};
+assign font_addr = {char_byte[14:8], drawY_d[3:0]};
 font_rom font (
     .addr(font_addr),
     .data(font_data)
@@ -227,23 +227,27 @@ font_rom font (
 
 // bit 7 is the leftmost pixel; XOR with IV swaps foreground/background
 logic pixel_on;
-assign pixel_on = font_data[7 - drawX_d[2:0]] ^ char_byte[7];
+assign pixel_on = font_data[7 - drawX_d[2:0]] ^ char_byte[15];
 
-always_comb
-begin
-    if (~vde_d) begin
-        red = 4'h0; green = 4'h0; blue = 4'h0;
-    end
-    else if (pixel_on) begin   // foreground
-        red   = color_reg[27:24];
-        green = color_reg[23:20];
-        blue  = color_reg[19:16];
-    end
-    else begin                 // background
-        red   = color_reg[11:8];
-        green = color_reg[7:4];
-        blue  = color_reg[3:0];
-    end
+logic [3:0] fg_index, bg_index;
+logic [11:0] fg_rgb, bg_rgb;
+
+assign fg_index = char_byte[7:4];
+assign bg_index = char_byte[3:0];
+
+assign fg_rgb = palette[fg_index[3:1]]
+                       [fg_index[0]*16 +: 12];
+
+assign bg_rgb = palette[bg_index[3:1]]
+                       [bg_index[0]*16 +: 12];
+
+always_comb begin
+    if (!vde_d)
+        {red, green, blue} = 12'h000;
+    else if (pixel_on)
+        {red, green, blue} = fg_rgb;
+    else
+        {red, green, blue} = bg_rgb;
 end
 
 // Async reset: while axi_aresetn is low the VGA controller is also in reset,

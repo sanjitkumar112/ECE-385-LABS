@@ -9,7 +9,7 @@
 //Used for simulation of AXI4-Lite bus as well as generating
 //simulation video image for testing
 
-//`define SIM_VIDEO //Comment out to simulate AXI bus only
+`define SIM_VIDEO //Comment out to simulate AXI bus only
                     //Uncomment to simulate entire screen and write BMP (slow)
 
 module hdmi_text_controller_tb();
@@ -54,6 +54,11 @@ module hdmi_text_controller_tb();
     logic pixel_clk, pixel_hs, pixel_vs, pixel_vde;
     logic [9:0] drawX, drawY;
     logic [31:0] tb_read;
+    logic [31:0] expected_vram [0:1199];
+    string display_text;
+
+    localparam integer VRAM_WORDS = 1200; // 2400 character cells, two per 32-bit word
+    localparam logic [31:0] PALETTE_BASE = 32'h0000_2000; // AXI word indices 0x800-0x807
     
     //BMP writer related signals    
     localparam BMP_WIDTH  = 800;
@@ -104,26 +109,40 @@ module hdmi_text_controller_tb();
         #5 aclk = ~aclk;
     end
 
-    //Uncomment and fill in the following with your own hierarchical reference (e.g. internal signals) 
-    //so that the testbench can properly reflect the pixels being draw. 
-    //Note that looking at the HDMI signal is not particularly useful here, as it is difficult
-    //to decode. E.g. if your hdmi_text_controller has an internal signal named 'clk_25MHz' for
-    //the pixel clock, assign pixel_clk = hdmi_text_controller_v1_0_inst.clk_25MHz
-    
-    // Red Green and Blue values respectively - these come from your draw logic
-    // assign pixel_rgb[0] = 
-    // assign pixel_rgb[1] =
-    // assign pixel_rgb[2] = 
-    
-    // Pixel clock, hs, vs, and vde (!blank) - these come from your internal VGA module
-    // assign pixel_clk = 
-    // assign pixel_hs = 
-    // assign pixel_vs = 
-    // assign pixel_vde = 
-    
-    // DrawX and DrawY - these come from your internal VGA module
-    // assign drawX = 
-    // assign drawY =
+    // Tap the internal pixel signals. Use the delayed RGB/timing/coordinates so
+    // each captured color is stored at the matching screen location.
+    assign pixel_rgb[0] = hdmi_text_controller_v1_0_inst.red;
+    assign pixel_rgb[1] = hdmi_text_controller_v1_0_inst.green;
+    assign pixel_rgb[2] = hdmi_text_controller_v1_0_inst.blue;
+    assign pixel_clk    = hdmi_text_controller_v1_0_inst.clk_25MHz;
+    assign pixel_hs     = hdmi_text_controller_v1_0_inst.hsync_d;
+    assign pixel_vs     = hdmi_text_controller_v1_0_inst.vsync_d;
+    assign pixel_vde    = hdmi_text_controller_v1_0_inst.vde_d;
+    assign drawX        = hdmi_text_controller_v1_0_inst.drawX_d;
+    assign drawY        = hdmi_text_controller_v1_0_inst.drawY_d;
+
+    // Week 2 VRAM cell format: {inverse, 7-bit ASCII, 4-bit foreground
+    // palette index, 4-bit background palette index}.
+    function automatic logic [15:0] make_cell(
+        input logic [7:0] character,
+        input logic [3:0] foreground,
+        input logic [3:0] background
+    );
+        make_cell = {1'b0, character[6:0], foreground, background};
+    endfunction
+
+    // Palette indices 6 and 7 are blue and orange. The remaining message
+    // characters use white; index 0 is the black background.
+    function automatic logic [3:0] foreground_for_position(input integer position);
+        if ((position < 6) || ((position >= 11) && (position < 18)))
+            foreground_for_position = 4'd6;
+        else if (position >= 29)
+            foreground_for_position = 4'd7;
+        else
+            foreground_for_position = 4'd1;
+    endfunction
+
+
    
     // BMP writing task, based off work from @BrianHGinc:
     // https://github.com/BrianHGinc/SystemVerilog-TestBench-BPM-picture-generator
@@ -135,6 +154,7 @@ module hdmi_text_controller_tb();
         
                                       BMP_row_size  = 32'(BMP_WIDTH) & 32'hFFFC;  // When saving a bitmap, the row size/width must be
         if ((BMP_WIDTH & 32'd3) !=0)  BMP_row_size  = BMP_row_size + 4;           // padded to chunks of 4 bytes.
+        BMP_file_size = 54 + (BMP_row_size * BMP_HEIGHT * 3);
     
         fout_bmp_pointer= $fopen(bmp_file_name,"wb");
         if (fout_bmp_pointer==0) begin
@@ -222,54 +242,95 @@ module hdmi_text_controller_tb();
             //end of write transaction
         end
     endtask;
+
+    task write_week2_text;
+        logic [15:0] cell0, cell1;
+        integer word_index;
+        integer char0_position, char1_position;
+        begin
+            for (word_index = 0; word_index < VRAM_WORDS; word_index = word_index + 1) begin
+                char0_position = 2 * word_index;
+                char1_position = char0_position + 1;
+                cell0 = make_cell(8'h20, 4'd1, 4'd0);
+                cell1 = make_cell(8'h20, 4'd1, 4'd0);
+                if (char0_position < display_text.len())
+                    cell0 = make_cell(display_text[char0_position],
+                                      foreground_for_position(char0_position), 4'd0);
+                if (char1_position < display_text.len())
+                    cell1 = make_cell(display_text[char1_position],
+                                      foreground_for_position(char1_position), 4'd0);
+                expected_vram[word_index] = {cell1, cell0};
+                axi_write(4 * word_index, expected_vram[word_index]);
+            end
+        end
+    endtask
     
-    //Fill in this task to perform an AXI read, similar to the provided example
+    // AXI read task for the registered BRAM read path, similar to the provided example
     //of the AXI write above, follow the waveforms provided into the I.AMM manual
     //Note the read handshake process is simpler than the write
     task axi_read (input logic [31:0] addr, output logic [31:0] data);
         begin
+            read_addr <= addr;
+            read_addr_valid <= 1'b1;
+            read_data_ready <= 1'b1;
+
+            wait (read_addr_ready);
+            @(posedge aclk);
+            read_addr_valid <= 1'b0;
+
+            wait (read_data_valid);
+            data = read_data;
+            @(posedge aclk);
+            read_data_ready <= 1'b0;
         end
     endtask;
   
   
-    // Initial block for test vectors begins below
+    // Initial block for Week 2 test vectors begins below
     initial begin: TEST_VECTORS
-        arstn = 0; //reset IP
+        arstn = 1'b0;
         repeat (4) @(posedge aclk);
-        arstn <= 1;
-        
-        //remember AXI addresses are BYTE addresses!
-        //This writes something into the Control Register so that we're not simulating a black screen
-        //write control reg to set foreground (x36E) and background (xE94)
-        repeat (4) @(posedge aclk) axi_write((600*4), {16'h036B,16'h0E94}); 
-        
-        //Write into every one of the 600 VRAM registers, note that this is different than what the driver C code does
-        //because the testbench axi_write task only generates aligned (full 32-bit) AXI writes (e.g. write_strb is always F)
-        //The C code on the MicroBlaze expects to be able to do byte and halfword (16-bit) writes, therefore if the
-        //simulation works but the checksum does not pass in the hardware, check handling of write_strb. 
-        for(i=0; i < 600; i++) begin 
-		  repeat (4) @(posedge aclk) axi_write(4*i, i);
+        arstn <= 1'b1;
+
+        // Two netids, blue (palette index 6), and the course label in orange
+        // (palette index 7). Extra ! makes the string even-length for 32-bit writes.
+        display_text = "amogk2 and sanjit3 completed ECE 385!!";
+        if (display_text.len() != 38)
+            $fatal(1, "Expected 38 characters, got %0d", display_text.len());
+
+        // Each palette register stores two 12-bit RGB values:
+        // even index in bits [11:0], odd index in bits [27:16].
+        for (integer p = 0; p < 8; p = p + 1)
+            axi_write(PALETTE_BASE + 4 * p, 32'd0);
+        axi_write(PALETTE_BASE + 4 * 0, 32'h0FFF_0000); // index 0 black, index 1 white
+        axi_write(PALETTE_BASE + 4 * 3, 32'h0E94_036B); // index 6 blue, index 7 orange
+
+        // Initialize all 2400 character cells, including the unused screen area.
+        write_week2_text();
+
+        // Verify BRAM-backed VRAM readback through AXI.
+        for (integer k = 0; k < VRAM_WORDS; k = k + 1) begin
+            axi_read(4 * k, tb_read);
+            assert (tb_read == expected_vram[k])
+                else $error("VRAM mismatch at word %0d. Expected %08x, got %08x",
+                            k, expected_vram[k], tb_read);
         end
-        
-        //The following is the readback routine. It tests that your AXI IP is capable of reading back all 601
-        //VRAM registers via AXI (once you've properly filled in axi_read as above). Note that the verification
-        //of the readback results is automatic, it will throw an assertion if the readback result is not as expected        
-        for(i=0; i < 600; i++) begin 
-		  repeat (4) @(posedge aclk) axi_read(4*i, tb_read);
-		  axi_read_assert:assert (tb_read == i) else $error ("AXI readback mismatch at address %x. Expected: %x. Actual:%x.", i, i, tb_read);
-        end
-        
-        repeat (4) @(posedge aclk) axi_read(600*4, tb_read);
-        $info ("Read back of control register: %x", tb_read);
-        
-        //Make sure you've set the simulation settings to run to 'all', rather than the 1000ns default
-		
-		//Simulate until VS goes low (indicating a new frame) and write the results
-		`ifdef SIM_VIDEO
-		wait (~pixel_vs);
-		save_bmp ("lab7_1_sim.bmp");
-		`endif
-		$finish();
+
+        // Verify the two palette registers used by this image.
+        axi_read(PALETTE_BASE, tb_read);
+        assert (tb_read == 32'h0FFF_0000)
+            else $error("Palette register 0 mismatch: %08x", tb_read);
+        axi_read(PALETTE_BASE + 4 * 3, tb_read);
+        assert (tb_read == 32'h0E94_036B)
+            else $error("Palette register 3 mismatch: %08x", tb_read);
+
+        `ifdef SIM_VIDEO
+        // Let one complete frame pass after the writes, then save the captured image.
+        @(negedge pixel_vs);
+        @(negedge pixel_vs);
+        save_bmp("lab7_2_sim.bmp");
+        `endif
+        $finish();
 	end
     
 endmodule	
